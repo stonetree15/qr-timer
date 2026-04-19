@@ -17,18 +17,24 @@
     }
 
     button {
-      padding: 10px 18px;
-      font-size: 16px;
-      background: green;
-      color: white;
+      padding: 10px 14px;
+      font-size: 15px;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
+      margin: 5px;
     }
+
+    #generate { background: green; color: white; }
+    #download { background: dodgerblue; color: white; }
+    #copy { background: orange; color: white; }
 
     img {
       margin-top: 20px;
+      width: 220px;
+      height: 220px;
+      border: 1px solid #ccc;
+      background: white;
     }
   </style>
 </head>
@@ -62,13 +68,17 @@
 
 <br><br>
 
-<button onclick="generateQR()">Genereer QR Code</button>
+<button id="generate" onclick="generateQR()">Genereer QR</button>
+<button id="download" onclick="downloadQR()">Download</button>
+<button id="copy" onclick="copyQR()">Kopieer</button>
 
-<br><br>
+<br>
 
 <img id="qr">
 
 <script>
+let lastQRUrl = "";
+
 function generateQR() {
   let min = document.getElementById("minutes").value;
   let sec = document.getElementById("seconds").value;
@@ -80,11 +90,39 @@ function generateQR() {
     baseUrl +
     `?m=${min}&s=${sec}&sound=${encodeURIComponent(sound)}`;
 
-  let qr =
-    "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" +
+  lastQRUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
     encodeURIComponent(url);
 
-  document.getElementById("qr").src = qr;
+  document.getElementById("qr").src = lastQRUrl;
+}
+
+function downloadQR() {
+  if (!lastQRUrl) return;
+
+  fetch(lastQRUrl)
+    .then(res => res.blob())
+    .then(blob => {
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "qr-timer.png";
+      link.click();
+    });
+}
+
+function copyQR() {
+  if (!lastQRUrl) return;
+
+  fetch(lastQRUrl)
+    .then(res => res.blob())
+    .then(blob => {
+      navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob })
+      ]);
+      alert("QR gekopieerd!");
+    })
+    .catch(() => {
+      alert("Kopiëren niet ondersteund in deze browser");
+    });
 }
 </script>
 
