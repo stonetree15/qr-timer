@@ -2,30 +2,87 @@
 <html>
 <head>
   <title>QR Timer Generator</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+      background: #f5f5f5;
+    }
+
+    input, select {
+      padding: 8px;
+      font-size: 16px;
+      margin: 5px;
+    }
+
+    button {
+      padding: 10px 18px;
+      font-size: 16px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    img {
+      margin-top: 20px;
+    }
+  </style>
 </head>
+
 <body>
 
 <h2>QR Timer Generator</h2>
 
 <label>Minuten:</label>
-<input type="number" id="minutes" value="1"><br><br>
+<input type="number" id="minutes" value="1" min="0"><br>
 
 <label>Seconden:</label>
-<input type="number" id="seconds" value="30"><br><br>
+<input type="number" id="seconds" value="30" min="0" max="59"><br>
+
+<br>
+
+<label>Geluid:</label>
+<select id="soundSelect">
+  <option value="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg">
+    Digital Watch (default)
+  </option>
+
+  <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">
+    Alarm Clock
+  </option>
+
+  <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+    Beep
+  </option>
+</select>
+
+<br><br>
 
 <button onclick="generateQR()">Genereer QR Code</button>
 
 <br><br>
+
 <img id="qr">
 
 <script>
 function generateQR() {
   let min = document.getElementById("minutes").value;
   let sec = document.getElementById("seconds").value;
+  let sound = document.getElementById("soundSelect").value;
 
-  let url = `https://stonetree15.github.io/qr-timer/timer.html?m=${min}&s=${sec}`;
+  let baseUrl = "https://stonetree15.github.io/qr-timer/timer.html";
 
-  let qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+  let url =
+    baseUrl +
+    `?m=${min}&s=${sec}&sound=${encodeURIComponent(sound)}`;
+
+  let qr =
+    "https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" +
+    encodeURIComponent(url);
 
   document.getElementById("qr").src = qr;
 }
