@@ -6,14 +6,43 @@
     body {
       font-family: Arial;
       text-align: center;
-      margin-top: 60px;
+      margin-top: 40px;
       background: #f5f5f5;
     }
 
-    #timer {
-      font-size: 70px;
-      margin: 30px;
+    #timerText {
+      position: absolute;
+      top: 135px;
+      left: 0;
+      right: 0;
+      font-size: 40px;
       font-weight: bold;
+    }
+
+    .container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+    }
+
+    svg {
+      transform: rotate(-90deg);
+    }
+
+    circle {
+      fill: none;
+      stroke-width: 20;
+    }
+
+    .bg {
+      stroke: #ddd;
+    }
+
+    .progress {
+      stroke: red;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
     }
 
     button {
@@ -34,13 +63,21 @@
 <body>
 
 <h1>Timer</h1>
-<div id="timer">0:00</div>
+
+<div class="container">
+  <svg width="300" height="300">
+    <circle class="bg" cx="150" cy="150" r="120"></circle>
+    <circle class="progress" cx="150" cy="150" r="120"></circle>
+  </svg>
+  <div id="timerText">0:00</div>
+</div>
+
+<br>
 
 <button id="play" onclick="startTimer()">▶ Play</button>
 <button id="reset" onclick="resetTimer()">🔄 Reset</button>
-<button id="stop" onclick="stopAlarm()">⛔ Stop Alarm</button>
+<button id="stop" onclick="stopAlarm()">⛔ Stop</button>
 
-<!-- 🔔 echte ringtone (keukenwekker geluid) -->
 <audio id="alarmSound" preload="auto">
   <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
 </audio>
@@ -54,16 +91,27 @@ let totalStart = startMin * 60 + startSec;
 let total = totalStart;
 
 let interval = null;
-let alarmInterval = null;
 let alarmTimeout = null;
-
 let alarmSound = document.getElementById("alarmSound");
+
+let circle = document.querySelector(".progress");
+let radius = 120;
+let circumference = 2 * Math.PI * radius;
+
+circle.style.strokeDasharray = circumference;
+circle.style.strokeDashoffset = 0;
 
 function updateDisplay() {
   let m = Math.floor(total / 60);
   let s = total % 60;
-  document.getElementById("timer").innerText =
+
+  document.getElementById("timerText").innerText =
     m + ":" + (s < 10 ? "0" : "") + s;
+
+  let progress = total / totalStart;
+  let offset = circumference * (1 - progress);
+
+  circle.style.strokeDashoffset = offset;
 }
 
 function startTimer() {
@@ -82,11 +130,9 @@ function startTimer() {
 }
 
 function startAlarm() {
-  // start geluid
   alarmSound.loop = true;
   alarmSound.play();
 
-  // automatische stop na 10 sec
   alarmTimeout = setTimeout(() => {
     stopAlarm(true);
   }, 10000);
@@ -97,7 +143,6 @@ function stopAlarm(autoReset = false) {
   alarmSound.currentTime = 0;
 
   clearTimeout(alarmTimeout);
-  alarmTimeout = null;
 
   if (autoReset) {
     resetTimer();
