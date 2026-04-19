@@ -2,31 +2,118 @@
 <html>
 <head>
   <title>Timer</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    #timer {
+      font-size: 60px;
+      margin: 20px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    #play { background: green; color: white; }
+    #reset { background: gold; }
+    #stop { background: red; color: white; }
+  </style>
 </head>
+
 <body>
 
-<h1 id="timer"></h1>
+<h1>Timer</h1>
+<div id="timer">0:00</div>
+
+<button id="play" onclick="startTimer()">▶ Play</button>
+<button id="reset" onclick="resetTimer()">🔄 Reset</button>
+<button id="stop" onclick="stopAlarm()">⛔ Stop Alarm</button>
 
 <script>
 let params = new URLSearchParams(window.location.search);
-let min = parseInt(params.get("m")) || 0;
-let sec = parseInt(params.get("s")) || 0;
+let startMin = parseInt(params.get("m")) || 0;
+let startSec = parseInt(params.get("s")) || 0;
 
-let total = min * 60 + sec;
+let totalStart = startMin * 60 + startSec;
+let total = totalStart;
 
-function updateTimer() {
+let interval = null;
+let alarmInterval = null;
+let alarmTimeout = null;
+
+function updateDisplay() {
   let m = Math.floor(total / 60);
   let s = total % 60;
-
-  document.getElementById("timer").innerText = m + ":" + (s < 10 ? "0" : "") + s;
-
-  if (total > 0) {
-    total--;
-    setTimeout(updateTimer, 1000);
-  }
+  document.getElementById("timer").innerText =
+    m + ":" + (s < 10 ? "0" : "") + s;
 }
 
-updateTimer();
+function startTimer() {
+  if (interval) return;
+
+  interval = setInterval(() => {
+    if (total > 0) {
+      total--;
+      updateDisplay();
+    } else {
+      clearInterval(interval);
+      interval = null;
+      startAlarm();
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(interval);
+  interval = null;
+
+  stopAlarm();
+
+  total = totalStart;
+  updateDisplay();
+}
+
+function startAlarm() {
+  let ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function beep() {
+    let osc = ctx.createOscillator();
+    let gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.frequency.value = 800;
+    gain.gain.value = 0.1;
+
+    osc.start();
+    setTimeout(() => osc.stop(), 200);
+  }
+
+  // geluid elke 500ms
+  alarmInterval = setInterval(beep, 500);
+
+  // max 10 sec automatisch stoppen
+  alarmTimeout = setTimeout(stopAlarm, 10000);
+}
+
+function stopAlarm() {
+  clearInterval(alarmInterval);
+  clearTimeout(alarmTimeout);
+  alarmInterval = null;
+  alarmTimeout = null;
+}
+
+updateDisplay();
 </script>
 
 </body>
