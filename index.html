@@ -23,7 +23,7 @@ function generateQR() {
   let min = document.getElementById("minutes").value;
   let sec = document.getElementById("seconds").value;
 
-  let url = `https://example.com/timer.html?m=${min}&s=${sec}`;
+  let url = `https://stonetree15.github.io/qr-timer/timer.html?m=${min}&s=${sec}`;
 
   let qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
 
