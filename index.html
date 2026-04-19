@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QR Timer Generator</title>
+</head>
+<body>
+
+<h2>QR Timer Generator</h2>
+
+<label>Minuten:</label>
+<input type="number" id="minutes" value="1"><br><br>
+
+<label>Seconden:</label>
+<input type="number" id="seconds" value="30"><br><br>
+
+<button onclick="generateQR()">Genereer QR Code</button>
+
+<br><br>
+<img id="qr">
+
+<script>
+function generateQR() {
+  let min = document.getElementById("minutes").value;
+  let sec = document.getElementById("seconds").value;
+
+  let url = `https://example.com/timer.html?m=${min}&s=${sec}`;
+
+  let qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+
+  document.getElementById("qr").src = qr;
+}
+</script>
+
+</body>
+</html>

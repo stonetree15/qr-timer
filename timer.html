@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Timer</title>
+</head>
+<body>
+
+<h1 id="timer"></h1>
+
+<script>
+let params = new URLSearchParams(window.location.search);
+let min = parseInt(params.get("m")) || 0;
+let sec = parseInt(params.get("s")) || 0;
+
+let total = min * 60 + sec;
+
+function updateTimer() {
+  let m = Math.floor(total / 60);
+  let s = total % 60;
+
+  document.getElementById("timer").innerText = m + ":" + (s < 10 ? "0" : "") + s;
+
+  if (total > 0) {
+    total--;
+    setTimeout(updateTimer, 1000);
+  }
+}
+
+updateTimer();
+</script>
+
+</body>
+</html>
