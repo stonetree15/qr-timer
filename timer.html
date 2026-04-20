@@ -58,6 +58,12 @@
     #play { background: green; color: white; }
     #reset { background: gold; }
     #stop { background: red; color: white; }
+
+    #hint {
+      font-size: 14px;
+      color: #555;
+      margin-top: 10px;
+    }
   </style>
 </head>
 
@@ -72,6 +78,8 @@
   </svg>
   <div id="timerText">0:00</div>
 </div>
+
+<div id="hint">Tik op Play om timer te starten (geluid activeren)</div>
 
 <br>
 
@@ -100,6 +108,7 @@ let soundUrl =
 let alarmSound = document.getElementById("alarmSound");
 alarmSound.src = soundUrl;
 
+// 🔵 circle setup
 let circle = document.querySelector(".progress");
 let radius = 120;
 let circumference = 2 * Math.PI * radius;
@@ -107,6 +116,7 @@ let circumference = 2 * Math.PI * radius;
 circle.style.strokeDasharray = circumference;
 circle.style.strokeDashoffset = 0;
 
+// ⏱ update UI
 function updateDisplay() {
   let m = Math.floor(total / 60);
   let s = total % 60;
@@ -114,14 +124,21 @@ function updateDisplay() {
   document.getElementById("timerText").innerText =
     m + ":" + (s < 10 ? "0" : "") + s;
 
-  let progress = total / totalStart;
+  let progress = totalStart > 0 ? total / totalStart : 0;
   let offset = circumference * (1 - progress);
 
   circle.style.strokeDashoffset = offset;
 }
 
+// ▶ start timer (Apple fix inbegrepen)
 function startTimer() {
   if (interval) return;
+
+  // 🔓 Apple audio unlock
+  alarmSound.play().then(() => {
+    alarmSound.pause();
+    alarmSound.currentTime = 0;
+  }).catch(() => {});
 
   interval = setInterval(() => {
     if (total > 0) {
@@ -135,15 +152,20 @@ function startTimer() {
   }, 1000);
 }
 
+// 🔔 alarm
 function startAlarm() {
   alarmSound.loop = true;
-  alarmSound.play();
+
+  alarmSound.play().catch(() => {
+    console.log("Audio blocked until user interaction");
+  });
 
   alarmTimeout = setTimeout(() => {
     stopAlarm(true);
   }, 10000);
 }
 
+// ⛔ stop alarm
 function stopAlarm(autoReset = false) {
   alarmSound.pause();
   alarmSound.currentTime = 0;
@@ -153,6 +175,7 @@ function stopAlarm(autoReset = false) {
   resetTimer();
 }
 
+// 🔄 reset
 function resetTimer() {
   clearInterval(interval);
   interval = null;
