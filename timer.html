@@ -27,10 +27,7 @@
       stroke-width: 20;
     }
 
-    .bg {
-      stroke: #ddd;
-    }
-
+    .bg { stroke: #ddd; }
     .progress {
       stroke: red;
       stroke-linecap: round;
@@ -46,6 +43,11 @@
       font-weight: bold;
     }
 
+    .alarm {
+      background: red !important;
+      color: white;
+    }
+
     button {
       font-size: 16px;
       padding: 10px 18px;
@@ -58,12 +60,6 @@
     #play { background: green; color: white; }
     #reset { background: gold; }
     #stop { background: red; color: white; }
-
-    #hint {
-      font-size: 14px;
-      color: #555;
-      margin-top: 10px;
-    }
   </style>
 </head>
 
@@ -79,15 +75,13 @@
   <div id="timerText">0:00</div>
 </div>
 
-<div id="hint">Tik op Play om timer te starten (geluid activeren)</div>
-
 <br>
 
 <button id="play" onclick="startTimer()">▶ Play</button>
 <button id="reset" onclick="resetTimer()">🔄 Reset</button>
 <button id="stop" onclick="stopAlarm()">⛔ Stop</button>
 
-<audio id="alarmSound" preload="auto"></audio>
+<audio id="alarmSound" preload="auto" src="alarm.ogg"></audio>
 
 <script>
 let params = new URLSearchParams(window.location.search);
@@ -101,22 +95,15 @@ let total = totalStart;
 let interval = null;
 let alarmTimeout = null;
 
-let soundUrl =
-  params.get("sound") ||
-  "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg";
-
 let alarmSound = document.getElementById("alarmSound");
-alarmSound.src = soundUrl;
 
-// 🔵 circle setup
+// circle
 let circle = document.querySelector(".progress");
 let radius = 120;
 let circumference = 2 * Math.PI * radius;
-
 circle.style.strokeDasharray = circumference;
-circle.style.strokeDashoffset = 0;
 
-// ⏱ update UI
+// display
 function updateDisplay() {
   let m = Math.floor(total / 60);
   let s = total % 60;
@@ -126,15 +113,14 @@ function updateDisplay() {
 
   let progress = totalStart > 0 ? total / totalStart : 0;
   let offset = circumference * (1 - progress);
-
   circle.style.strokeDashoffset = offset;
 }
 
-// ▶ start timer (Apple fix inbegrepen)
+// 🔓 unlock + start
 function startTimer() {
   if (interval) return;
 
-  // 🔓 Apple audio unlock
+  // unlock audio (cruciaal)
   alarmSound.play().then(() => {
     alarmSound.pause();
     alarmSound.currentTime = 0;
@@ -152,21 +138,37 @@ function startTimer() {
   }, 1000);
 }
 
-// 🔔 alarm
+// 🔔 alarm met fallback
 function startAlarm() {
-  alarmSound.loop = true;
+  document.body.classList.add("alarm");
 
-  alarmSound.play().catch(() => {
-    console.log("Audio blocked until user interaction");
-  });
+  let tries = 0;
+
+  function tryPlay() {
+    alarmSound.currentTime = 0;
+    alarmSound.loop = true;
+
+    alarmSound.play().then(() => {
+      console.log("geluid gestart");
+    }).catch(() => {
+      tries++;
+      if (tries < 5) {
+        setTimeout(tryPlay, 500);
+      }
+    });
+  }
+
+  tryPlay();
 
   alarmTimeout = setTimeout(() => {
-    stopAlarm(true);
+    stopAlarm();
   }, 10000);
 }
 
-// ⛔ stop alarm
-function stopAlarm(autoReset = false) {
+// ⛔ stop
+function stopAlarm() {
+  document.body.classList.remove("alarm");
+
   alarmSound.pause();
   alarmSound.currentTime = 0;
 
