@@ -43,11 +43,6 @@
       font-weight: bold;
     }
 
-    .alarm {
-      background: red !important;
-      color: white;
-    }
-
     button {
       font-size: 16px;
       padding: 10px 18px;
@@ -81,7 +76,7 @@
 <button id="reset" onclick="resetTimer()">🔄 Reset</button>
 <button id="stop" onclick="stopAlarm()">⛔ Stop</button>
 
-<audio id="alarmSound" preload="auto" src="alarm.ogg"></audio>
+<audio id="alarmSound" preload="auto"></audio>
 
 <script>
 let params = new URLSearchParams(window.location.search);
@@ -97,13 +92,22 @@ let alarmTimeout = null;
 
 let alarmSound = document.getElementById("alarmSound");
 
-// circle
+// 🔊 geluid uit QR halen
+let soundParam = params.get("sound");
+if (soundParam) {
+  alarmSound.src = decodeURIComponent(soundParam);
+} else {
+  // fallback geluid
+  alarmSound.src = "https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg";
+}
+
+// circle setup
 let circle = document.querySelector(".progress");
 let radius = 120;
 let circumference = 2 * Math.PI * radius;
 circle.style.strokeDasharray = circumference;
 
-// display
+// display update
 function updateDisplay() {
   let m = Math.floor(total / 60);
   let s = total % 60;
@@ -116,14 +120,16 @@ function updateDisplay() {
   circle.style.strokeDashoffset = offset;
 }
 
-// 🔓 unlock + start
+// ▶ start
 function startTimer() {
   if (interval) return;
 
-  // unlock audio (cruciaal)
+  // 🔓 audio unlock (werkt op mobiel)
+  alarmSound.muted = true;
   alarmSound.play().then(() => {
     alarmSound.pause();
     alarmSound.currentTime = 0;
+    alarmSound.muted = false;
   }).catch(() => {});
 
   interval = setInterval(() => {
@@ -138,19 +144,16 @@ function startTimer() {
   }, 1000);
 }
 
-// 🔔 alarm met fallback
+// 🔔 alarm
 function startAlarm() {
-  document.body.classList.add("alarm");
-
   let tries = 0;
 
   function tryPlay() {
     alarmSound.currentTime = 0;
     alarmSound.loop = true;
+    alarmSound.volume = 1;
 
-    alarmSound.play().then(() => {
-      console.log("geluid gestart");
-    }).catch(() => {
+    alarmSound.play().catch(() => {
       tries++;
       if (tries < 5) {
         setTimeout(tryPlay, 500);
@@ -167,13 +170,10 @@ function startAlarm() {
 
 // ⛔ stop
 function stopAlarm() {
-  document.body.classList.remove("alarm");
-
   alarmSound.pause();
   alarmSound.currentTime = 0;
 
   clearTimeout(alarmTimeout);
-
   resetTimer();
 }
 
