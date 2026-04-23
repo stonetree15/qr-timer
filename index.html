@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>QR Timer Generator</title>
+
   <style>
     body {
       font-family: Arial;
@@ -90,7 +91,8 @@ function generateQR() {
     baseUrl +
     `?m=${min}&s=${sec}&sound=${encodeURIComponent(sound)}`;
 
-  lastQRUrl = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
+  lastQRUrl =
+    "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" +
     encodeURIComponent(url);
 
   document.getElementById("qr").src = lastQRUrl;
@@ -121,7 +123,7 @@ function copyQR() {
       alert("QR gekopieerd!");
     })
     .catch(() => {
-      alert("Kopiëren niet ondersteund in deze browser");
+      alert("Kopiëren niet ondersteund");
     });
 }
 </script>
